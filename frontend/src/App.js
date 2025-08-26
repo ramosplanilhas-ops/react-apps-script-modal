@@ -1,21 +1,12 @@
+import React from 'react';
 import './App.css';
+import Form from './components/Form'; // Importa o novo componente
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src="/images/logo.svg" className="App-logo" alt="logo" />
-        <p>
-          Olá, Mundo! Meu primeiro app React no Gitpod!
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <Form /> {/* Renderiza o componente de formulário */}
       </header>
     </div>
   );
