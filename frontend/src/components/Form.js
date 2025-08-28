@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import {
-  Grid,
-  TextField,
-  Autocomplete,
-  FormControlLabel,
-  Switch,
-} from '@mui/material';
+import {Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Autocomplete, TextField, Switch, FormControlLabel} from '@mui/material';
 
 function Form() {
   const [dataLancamento, setDataLancamento] = useState(null);
@@ -59,7 +54,7 @@ function Form() {
     <form>
       <Grid container spacing={2} marginLeft={5} marginRight={5}>
         {/* Linha 1: 4 campos */}
-        <Grid item size={{ xs:6, md:2.4}}>
+        <Grid item size={{ xs:12, md:3}}>
           <DatePicker            
             label="Data"
             value={dataLancamento}
@@ -68,7 +63,7 @@ function Form() {
             renderInput={(params) => <TextField {...params} fullWidth/>}
           />
         </Grid>
-        <Grid item size={{ xs:6, md:2.4}}>
+        <Grid item size={{ xs:12, md:3}}>
           <TextField
             fullWidth
             label="Valor (R$)"
@@ -77,7 +72,7 @@ function Form() {
             onChange={handleValorChange}
           />
         </Grid>
-        <Grid item size={{ xs:6, md:2.4}}>
+        <Grid item size={{ xs:12, md:3}}>
           <Autocomplete
             disablePortal
             id="parcelamento-autocomplete"
@@ -88,7 +83,7 @@ function Form() {
             renderInput={(params) => <TextField {...params} label="Parcelamento" fullWidth />}
           />
         </Grid>
-        <Grid item size={{ xs:6, md:2.4}}>
+        <Grid item size={{ xs:12, md:3}}>
           <Autocomplete
             disablePortal
             id="forma-pagamento-autocomplete"
@@ -101,7 +96,7 @@ function Form() {
         </Grid>
 
         {/* Linha 2: 4 campos */}
-        <Grid item size={{ xs:6, md:2.4}}>
+        <Grid item size={{ xs:12, md:3}}>
           <Autocomplete
             disablePortal
             id="tipo-pessoa-autocomplete"
@@ -112,7 +107,7 @@ function Form() {
             renderInput={(params) => <TextField {...params} label="Tipo Pessoa" fullWidth />}
           />
         </Grid>
-        <Grid item size={{ xs:6, md:2.4}}>
+        <Grid item size={{ xs:12, md:3}}>
           <Autocomplete
             disablePortal
             id="tipo-autocomplete"
@@ -123,7 +118,7 @@ function Form() {
             renderInput={(params) => <TextField {...params} label="Tipo" fullWidth />}
           />
         </Grid>
-        <Grid item size={{ xs:6, md:2.4}}>
+        <Grid item size={{ xs:12, md:3}}>
           <Autocomplete
             disablePortal
             id="categoria-autocomplete"
@@ -134,7 +129,7 @@ function Form() {
             renderInput={(params) => <TextField {...params} label="Categoria" fullWidth />}
           />
         </Grid>
-        <Grid item size={{ xs:6, md:2.4}}>
+        <Grid item size={{ xs:12, md:3}}>
           <Autocomplete
             disablePortal
             id="plano-de-contas-autocomplete"
@@ -147,7 +142,7 @@ function Form() {
         </Grid>
 
         {/* Linha 3: 2 campos */}
-        <Grid item size={{ xs:6, md:2.4}}>
+        <Grid item size={{ xs:12, md:3}}>
           <Autocomplete
             disablePortal
             id="pessoa-autocomplete"
@@ -158,7 +153,7 @@ function Form() {
             renderInput={(params) => <TextField {...params} label="Pessoa" fullWidth />}
           />
         </Grid>
-        <Grid item size={{ xs:6, md:2.4}}>
+        <Grid item size={{ xs:12, md:3}}>
           <Autocomplete
             disablePortal
             id="conta-autocomplete"
@@ -169,9 +164,44 @@ function Form() {
             renderInput={(params) => <TextField {...params} label="Conta" fullWidth />}
           />
         </Grid>
+        
+        <Grid item size={{ xs:6 }}>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Data</TableCell>
+                  <TableCell>Parcela</TableCell>
+                  <TableCell>Valor</TableCell>
+                  <TableCell>Baixa</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {/*Aqui, você mapeará o array 'parcelas'}
+                  {parcelas.map((parcela, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        {/* Campo de Data editável (DatePicker ou TextField) }
+                      </TableCell>
+                      <TableCell>{parcela.parcelaTexto}</TableCell> {/* Campo não editável }
+                      <TableCell>
+                        {/* Campo de Valor editável (TextField) }
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={parcela.baixa}
+                          onChange={(event) => handleToggleBaixa(index, event.target.checked)}
+                          name={`baixa-${index}`}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))*/}                
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Grid>
 
-        {/* Linha 4: Observações (em largura total) */}
-        <Grid item size={{ xs:12 }}>
+        <Grid item size={{ xs:6 }}>
           <TextField            
             label="Observações"
             name="observacoes"
