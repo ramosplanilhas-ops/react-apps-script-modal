@@ -1,35 +1,61 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './App.css';
 import Form from './components/Form';
 import Header from './components/Header';
-
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { AppBar, Toolbar, Box } from '@mui/material';
+import { Box, Typography, Container, CssBaseline, Button } from '@mui/material';
 
 function App() {
+  const [baixa, setBaixa] = useState(false);
+  const [isTableActive, setIsTableActive] = useState(false);
+
   return (
-    <div>
-      {/* AppBar para criar um cabeçalho fixo no topo da tela */}
-      <AppBar position="fixed" color="default">
-        <Toolbar sx={{ justifyContent: 'center' }}>
-          {/* Título centralizado com Box */}
-          <Box sx={{ flexGrow: 1, textAlign: 'center' }}>
-            <h1>Lançamentos</h1>
-          </Box>
-          {/* O componente Header (o Switch) alinhado à direita com Box */}
+    <form>
+      <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        <CssBaseline />
+        
+        <Box
+          sx={{
+            backgroundColor: 'background.paper',
+            color: 'text.primary',
+            borderBottom: '1px solid #ccc',
+            position: 'sticky',
+            top: 0,
+            zIndex: 1100,
+            p: 2,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexShrink: 0
+          }}
+        >
+          <Button variant="outlined">Limpar</Button>
+          <Button type='submit' variant="outlined">Salvar</Button>
+          <Typography variant="h4" component="h1" sx={{ flexGrow: 1, textAlign: 'center' }}>            
+          </Typography>
           <Box sx={{ flexShrink: 0, marginLeft: 'auto' }}>
-            <Header />
+            {!isTableActive && (
+              <Header
+                baixa={baixa}
+                onBaixaChange={setBaixa}
+              />
+            )}
           </Box>
-        </Toolbar>
-      </AppBar>
-      {/* Espaçamento para o conteúdo não ficar escondido atrás do header fixo */}
-      <main className="App-main" style={{ paddingTop: '64px' }}>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <Form />
-        </LocalizationProvider>
-      </main>
-    </div>
+        </Box>
+
+        <Container component="main" sx={{ flexGrow: 1, overflowY: 'auto', mt: 2, mb: 4 }}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Form
+              baixa={baixa}
+              onBaixaChange={setBaixa}
+              onTableActiveChange={setIsTableActive}
+            />
+          </LocalizationProvider>
+        </Container>
+      </Box>      
+    </form>
+    
   );
 }
 

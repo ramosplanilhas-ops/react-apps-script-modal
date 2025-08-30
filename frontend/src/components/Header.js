@@ -1,27 +1,15 @@
-import React, { useState } from 'react';
-import {
-  FormControlLabel,
-  Switch
-} from '@mui/material';
+import React from 'react';
+import { FormControlLabel, Switch } from '@mui/material';
 
-function Header() {
-  const [baixa, setBaixa] = useState(false);
-
-  const handleBaixaChange = (event) => {
-    setBaixa(event.target.checked);
+function Header({ baixa, onBaixaChange }) {
+  const handleToggle = (event) => {
+    onBaixaChange(event.target.checked);
   };
 
   return (
     <FormControlLabel
-      control={
-        <Switch
-          checked={baixa}
-          onChange={handleBaixaChange}
-          name="baixa"
-        />
-      }
+      control={<Switch checked={baixa} onChange={handleToggle} />}
       label="Baixa"
-      labelPlacement="start"
     />
   );
 }
