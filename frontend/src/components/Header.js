@@ -9,7 +9,8 @@ function Header({ baixa, onBaixaChange }) {
   return (
     <FormControlLabel
       control={<Switch checked={baixa} onChange={handleToggle} />}
-      label="Baixa"
+      label="Realizado"
+      labelPlacement="start"
     />
   );
 }

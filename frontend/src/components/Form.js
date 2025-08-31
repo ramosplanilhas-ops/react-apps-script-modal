@@ -2,33 +2,40 @@
 import React, { useState, useEffect } from 'react';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import {Grid, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Autocomplete, TextField, Switch, FormControlLabel} from '@mui/material';
+  Autocomplete, TextField, Switch, FormControlLabel,
+  responsiveFontSizes} from '@mui/material';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br';
 
 dayjs.locale('pt-br');
 
-function Form({ baixa, onBaixaChange, onTableActiveChange }) {
-  const [dataLancamento, setDataLancamento] = useState(null);
-  const [tipoPessoa, setTipoPessoa] = useState(null);
-  const [tipoLancamento, setTipoLancamento] = useState(null);
-  const [categoria, setCategoria] = useState(null);
-  const [planoDeContas, setPlanoDeContas] = useState(null);
-  const [valor, setValor] = useState('');
-  const [formaPagamento, setFormaPagamento] = useState(null);
-  const [pessoa, setPessoa] = useState(null);
-  const [conta, setConta] = useState(null);
-  const [parcelamento, setParcelamento] = useState(null);
-  const [observacoes, setObservacoes] = useState('');
+function Form({ 
+  baixa, onBaixaChange, onTableActiveChange,
+  dataLancamento, setDataLancamento,
+  tipoPessoa, setTipoPessoa,
+  tipoLancamento, setTipoLancamento,
+  categoria, setCategoria,
+  planoDeContas, setPlanoDeContas,
+  valor, setValor,
+  formaPagamento, setFormaPagamento,
+  pessoa, setPessoa,
+  conta, setConta,
+  parcelamento, setParcelamento,
+  parcelaInicial, setParcelaInicial,
+  observacoes, setObservacoes,
+  parcelas, setParcelas
+}) {
+
+  // Estados locais para as opções de Autocomplete, que são carregadas do Apps Script
   const [tiposParcelamento, setTiposParcelamento] = useState([]);
   const [formasPagamento, setFormasPagamento] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [planosDeContas, setPlanosDeContas] = useState([]);
   const [pessoas, setPessoas] = useState([]);
   const [contas, setContas] = useState([]);
-  const [parcelas, setParcelas] = useState([]);
-
+  
+  // Estados para desabilitar campos
   const [isCategoriaDisabled, setIsCategoriaDisabled] = useState(true);
   const [isPlanoDeContasDisabled, setIsPlanoDeContasDisabled] = useState(true);
   const [isPessoaDisabled, setIsPessoaDisabled] = useState(true);
@@ -84,7 +91,7 @@ function Form({ baixa, onBaixaChange, onTableActiveChange }) {
       setCategoria(null);
       setIsCategoriaDisabled(true);
     }
-  }, [tipoPessoa, tipoLancamento]);
+  }, [tipoPessoa, tipoLancamento, setCategoria]);
 
   useEffect(() => {
     if (tipoPessoa && tipoLancamento && categoria) {
@@ -106,7 +113,7 @@ function Form({ baixa, onBaixaChange, onTableActiveChange }) {
       setPlanoDeContas(null);
       setIsPlanoDeContasDisabled(true);
     }
-  }, [tipoPessoa, tipoLancamento, categoria]);
+  }, [tipoPessoa, tipoLancamento, categoria, setPlanoDeContas]);
 
   useEffect(() => {
     if (tipoPessoa) {
@@ -128,7 +135,7 @@ function Form({ baixa, onBaixaChange, onTableActiveChange }) {
       setPessoa(null);
       setIsPessoaDisabled(true);
     }
-  }, [tipoPessoa]);
+  }, [tipoPessoa, setPessoa]);
 
   useEffect(() => {
     if (tipoPessoa && pessoa) {
@@ -150,20 +157,22 @@ function Form({ baixa, onBaixaChange, onTableActiveChange }) {
       setConta(null);
       setIsContaDisabled(true);
     }
-  }, [tipoPessoa, pessoa]);
+  }, [tipoPessoa, pessoa, setConta]);
 
   useEffect(() => {
     if (dataLancamento && valor && parcelamento && parcelamento.value > 1) {
+      const vlInicial = parcelaInicial ? parcelaInicial : 1;
+      const inicio = parseInt(vlInicial);
       const parsedValor = parseFloat(valor.replace(',', '.')) || 0;
       const numParcelas = parcelamento.value;
       
-      const novasParcelas = Array.from({ length: numParcelas }, (_, i) => {
+      const novasParcelas = Array.from({ length: numParcelas  - inicio + 1}, (_, i) => {
         const dataParcela = dayjs(dataLancamento).add(i, 'month');
         const valorParcela = (parsedValor / numParcelas).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         return {
           id: i,
           data: dataParcela,
-          parcelaTexto: `${i + 1} de ${numParcelas}`,
+          parcelaTexto: `${i + inicio} de ${numParcelas}`,
           valor: valorParcela,
           baixa: baixa,
         };
@@ -174,8 +183,22 @@ function Form({ baixa, onBaixaChange, onTableActiveChange }) {
       setParcelas([]);
       onTableActiveChange(false);
     }
-  }, [dataLancamento, valor, parcelamento, baixa]); 
+  }, [dataLancamento, valor, parcelamento, baixa, setParcelas, onTableActiveChange, parcelaInicial]); 
   
+  //TESTE DE PARCELAMENTOS
+  /*const tiposParcelamento = [
+    { label: '1 parcela', value: 1 },
+    { label: '2 parcelas', value: 2 },
+    { label: '3 parcelas', value: 3 },
+    { label: '4 parcelas', value: 4 },
+    { label: '5 parcelas', value: 5 },
+    { label: '6 parcelas', value: 6 },
+    { label: '7 parcelas', value: 7 },
+    { label: '8 parcelas', value: 8 },
+    { label: '9 parcelas', value: 9 },    
+    { label: '10 parcelas', value: 10 },    
+  ];*/
+
   const tiposPessoa = [
     { label: 'Pessoa física', value: 'fisica' },
     { label: 'Pessoa jurídica', value: 'juridica' },
@@ -188,10 +211,17 @@ function Form({ baixa, onBaixaChange, onTableActiveChange }) {
 
   const handleValorChange = (event) => {
     const inputValue = event.target.value;
-    const regex = /^\d*[,]?\d{0,2}$/;
+    const regex = /^\d*[,]?\d{0,2}$/;    
     if (regex.test(inputValue) || inputValue === '') {
       setValor(inputValue);
     }
+  };
+
+  const handleParcelaInicialChange = (event) => {
+    const inputValue = event.target.value;    
+    if (!isNaN(inputValue)) {
+      setParcelaInicial(inputValue);
+    }    
   };
   
   const handleToggleBaixa = (index, newCheckedState) => {
@@ -225,9 +255,9 @@ function Form({ baixa, onBaixaChange, onTableActiveChange }) {
     setObservacoes(event.target.value);
   };
 
-  return (    
-    <Grid container spacing={2} marginLeft={5} marginRight={5}>
-      <Grid item size={{ xs:12, md:3}}>
+  return (
+    <Grid container spacing={2} marginLeft={5} marginRight={5} marginTop={0.7}>
+      <Grid item size={{ xs:12, md:2.5}}>
         <DatePicker          
           label="Data"
           value={dataLancamento}
@@ -236,25 +266,35 @@ function Form({ baixa, onBaixaChange, onTableActiveChange }) {
           renderInput={(params) => <TextField {...params} fullWidth/>}
         />
       </Grid>
-      <Grid item size={{ xs:12, md:3}}>
-        <TextField
+      <Grid item size={{ xs:12, md:2.5}}>
+        <TextField /*sx={{direction: 'rtl'}}*/
           fullWidth
           label="Valor (R$)"
           name="valor"
           value={valor}
           onChange={handleValorChange}
         />
-      </Grid>
-      <Grid item size={{ xs:12, md:3}}>
+      </Grid>      
+      <Grid item size={{ xs:12, md:2.5}}>
         <Autocomplete
           disablePortal
           id="parcelamento-autocomplete"
           options={tiposParcelamento}
           getOptionLabel={(option) => option.label || ""}
+          value={parcelamento}
           onChange={(event, newValue) => {
             setParcelamento(newValue);
           }}
           renderInput={(params) => <TextField {...params} label="Parcelamento" fullWidth />}
+        />
+      </Grid>
+      <Grid item size={{ xs:12, md:1.5}}>
+        <TextField
+          fullWidth
+          label="Parcela inicial"          
+          name="parcelaInicial"
+          value={parcelaInicial}
+          onChange={handleParcelaInicialChange}          
         />
       </Grid>
       <Grid item size={{ xs:12, md:3}}>
@@ -263,6 +303,7 @@ function Form({ baixa, onBaixaChange, onTableActiveChange }) {
           id="forma-pagamento-autocomplete"
           options={formasPagamento}
           getOptionLabel={(option) => option.label || ""}
+          value={formaPagamento}
           onChange={(event, newValue) => {
             setFormaPagamento(newValue);
           }}
@@ -275,6 +316,7 @@ function Form({ baixa, onBaixaChange, onTableActiveChange }) {
           disablePortal
           id="tipo-pessoa-autocomplete"
           options={tiposPessoa}
+          value={tipoPessoa}
           onChange={(event, newValue) => {
             setTipoPessoa(newValue);
           }}
@@ -286,6 +328,7 @@ function Form({ baixa, onBaixaChange, onTableActiveChange }) {
           disablePortal
           id="tipo-autocomplete"
           options={tiposLancamento}
+          value={tipoLancamento}
           onChange={(event, newValue) => {
             setTipoLancamento(newValue);
           }}
@@ -410,8 +453,8 @@ function Form({ baixa, onBaixaChange, onTableActiveChange }) {
             )}
           </Table>
         </TableContainer>
-      </Grid>        
-    </Grid>          
+      </Grid>
+    </Grid>
   );
 }
 
