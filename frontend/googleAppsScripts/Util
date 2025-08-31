@@ -1,0 +1,42 @@
+/**
+ * Função utilitária para incluir o conteúdo de outros arquivos HTML.
+ * Essa função permanece a mesma.
+ */
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+}
+
+/**
+ * Ordena uma lista de objetos 'options' com base nos parâmetros fornecidos.
+ * @param {object[]} options O array de objetos a ser ordenado.
+ * @param {boolean} orderByLabel Se verdadeiro, ordena pela 'label'. Caso contrário, ordena pelo 'value'.
+ * @param {boolean} ascending Se verdadeiro, ordena em ordem crescente. Caso contrário, em ordem decrescente.
+ * @return {object[]} O array ordenado.
+ */
+function sortOptions(options, orderByLabel, ascending) {
+  // Cria uma cópia do array para não modificar o original.
+  const sortedOptions = [...options];
+
+  sortedOptions.sort((a, b) => {
+    let keyA = orderByLabel ? a.label : a.value;
+    let keyB = orderByLabel ? b.label : b.value;
+
+    if (typeof keyA === 'string' && typeof keyB === 'string') {
+      // Comparação de strings com sensibilidade ao idioma.
+      if (ascending) {
+        return keyA.localeCompare(keyB);
+      } else {
+        return keyB.localeCompare(keyA);
+      }
+    } else {
+      // Comparação de números.
+      if (ascending) {
+        return keyA - keyB;
+      } else {
+        return keyB - keyA;
+      }
+    }
+  });
+
+  return sortedOptions;
+}

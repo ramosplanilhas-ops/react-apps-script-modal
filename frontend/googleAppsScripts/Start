@@ -1,0 +1,19 @@
+// A função onOpen é executada automaticamente quando a planilha é aberta.
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('MENU')
+    .addItem('Cadastrar Lançamento', 'showMyReactApp')
+    .addToUi();
+}
+
+// A função que o item de menu chamará para exibir o aplicativo.
+function showMyReactApp() {
+  // Cria um template a partir do arquivo Index.html
+  var html = HtmlService.createTemplateFromFile('Index')
+      .evaluate()
+      .setWidth(999999)
+      .setHeight(99999);
+
+  // Exibe o HTML como uma janela modal (caixa de diálogo).
+  SpreadsheetApp.getUi().showModalDialog(html, 'Cadastrar Lançamento');
+}

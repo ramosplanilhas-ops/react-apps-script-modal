@@ -1,0 +1,252 @@
+/**********PARCELAMENTO********************
+ * Retorna uma lista de opções de parcelamento baseadas no valor da célula C1 da aba 'Configurações'.
+ * @return {object} Um objeto JSON contendo a lista de opções.
+ */
+function getParcelamentoOptions() {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Configurações');
+    // Lê o valor da célula C1.
+    var maxParcelas = sheet.getRange('U3').getValue();
+    
+    // Garante que o valor seja um número válido e maior ou igual a 1.
+    if (typeof maxParcelas !== 'number' || isNaN(maxParcelas) || maxParcelas < 1) {
+      maxParcelas = 1;
+    }
+    
+    var options = [];
+    
+    // Gera as opções de parcelamento
+    for (var i = 1; i <= maxParcelas; i++) {
+      if (i === 1) {
+        options.push({label: '1 parcela', value: 1});
+      } else {
+        options.push({label: i + ' parcelas', value: i});
+      }
+    }
+    
+    // Retorna a lista como um objeto de sucesso
+    return {
+      status: 'success',
+      data: options
+    };
+  } catch (e) {
+    // Em caso de erro, retorna um objeto de erro
+    return {
+      status: 'error',
+      message: e.toString()
+    };
+  }
+}
+
+/**********FORMA DE PAGAMENTO**************
+ * Retorna uma lista de opções de formas de pagamento da aba 'Configurações'.
+ * Os dados são lidos da coluna R, a partir da linha 3.
+ * @return {object} Um objeto JSON contendo a lista de opções.
+ */
+function getPaymentMethodsOptions() {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Configurações');
+    var lastRow = sheet.getLastRow();
+    
+    // Define o intervalo para a coluna R, começando da linha 3 até a última linha com dados.
+    // O valor 18 corresponde à coluna R na notação de índice (A=1, B=2, ..., R=18).
+    var range = sheet.getRange(3, 18, lastRow - 2); 
+    
+    // Obtém os valores da planilha. O método getValues() retorna uma matriz 2D.
+    var values = range.getValues();
+    
+    // Filtra e mapeia os valores para o formato de objeto que o Autocomplete do React espera.
+    var options = values
+      .filter(row => row[0]) // Filtra linhas vazias
+      .map(row => ({ label: row[0].toString(), value: row[0].toString() }));
+    
+    // Remove duplicatas
+    const uniqueOptions = Array.from(new Map(options.map(item => [item.label, item])).values());
+
+    var sortedOptions = sortOptions(uniqueOptions, true, true);
+
+    return {
+      status: 'success',
+      data: sortedOptions
+    };
+  } catch (e) {
+    return {
+      status: 'error',
+      message: e.toString()
+    };
+  }
+}
+
+/**********CATEGORIA***********************
+ * Retorna uma lista de opções para o campo 'Categoria', filtrando
+ * com base no tipo de lançamento e no tipo de pessoa.
+ * @param {string} tipo O valor do tipo de lançamento ('receita' ou 'despesa').
+ * @param {string} tipoPessoa A label do tipo de pessoa.
+ * @return {object} Um objeto JSON contendo a lista de opções.
+ */
+function getCategoriesOptions(tipo, tipoPessoa) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Configurações');
+    var lastRow = sheet.getLastRow();
+    
+    let searchColumn, returnColumn;
+    
+    // Define as colunas de busca e retorno com base no 'tipo'
+    if (tipo === 'receita') {
+      searchColumn = 1; // Coluna A
+      returnColumn = 2; // Coluna B
+    } else if (tipo === 'despesa') {
+      searchColumn = 5; // Coluna E
+      returnColumn = 6; // Coluna F
+    } else {
+      // Retorna um array vazio se o tipo for inválido
+      return { status: 'success', data: [] };
+    }
+    
+    // Obtém todos os dados do intervalo relevante
+    var range = sheet.getRange(3, searchColumn, lastRow - 2, Math.max(returnColumn, searchColumn));
+    var values = range.getValues();
+    
+    // Filtra as linhas que correspondem ao 'tipoPessoa' e mapeia os resultados
+    var options = values
+      .filter(row => row[0] === tipoPessoa)
+      .map(row => ({ label: row[returnColumn - searchColumn].toString(), value: row[returnColumn - searchColumn].toString() }));
+      
+    // Remove duplicatas
+    const uniqueOptions = Array.from(new Map(options.map(item => [item.label, item])).values());
+      
+    // Ordena o resultado
+    var sortedOptions = sortOptions(uniqueOptions, true, true);
+    
+    return {
+      status: 'success',
+      data: sortedOptions
+    };
+  } catch (e) {
+    return {
+      status: 'error',
+      message: e.toString()
+    };
+  }
+}
+
+/**********PLANO DE CONTAS*****************
+ * Retorna uma lista de opções para o campo 'Plano de Contas', filtrando
+ * com base no tipo de pessoa, tipo de lançamento e na categoria.
+ * @param {string} tipoPessoa A label do tipo de pessoa.
+ * @param {string} tipo O valor do tipo de lançamento ('receita' ou 'despesa').
+ * @param {string} categoria A label da categoria.
+ * @return {object} Um objeto JSON contendo a lista de opções.
+ */
+function getAccountPlansOptions(tipoPessoa, tipo, categoria) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Configurações');
+    var lastRow = sheet.getLastRow();
+    
+    let personColumn, categoryColumn, accountPlanColumn;
+    
+    // Define as colunas de busca e retorno com base no 'tipo'
+    if (tipo === 'receita') {
+      personColumn = 1; // Coluna A (Tipo Pessoa)
+      categoryColumn = 2; // Coluna B (Categoria)
+      accountPlanColumn = 3; // Coluna C (Plano de Contas)
+    } else if (tipo === 'despesa') {
+      personColumn = 5; // Coluna E (Tipo Pessoa)
+      categoryColumn = 6; // Coluna F (Categoria)
+      accountPlanColumn = 7; // Coluna G (Plano de Contas)
+    } else {
+      // Retorna um array vazio se o tipo for inválido
+      return { status: 'success', data: [] };
+    }
+    
+    // Obtém todos os dados do intervalo relevante
+    var range = sheet.getRange(3, personColumn, lastRow - 2, accountPlanColumn - personColumn + 1);
+    var values = range.getValues();
+    
+    // Filtra as linhas que correspondem ao tipo de pessoa e à categoria
+    var options = values
+      .filter(row => row[0] === tipoPessoa && row[1] === categoria)
+      .map(row => ({ label: row[2].toString(), value: row[2].toString() }));
+      
+    // Remove duplicatas
+    const uniqueOptions = Array.from(new Map(options.map(item => [item.label, item])).values());
+    
+    // Ordena o resultado
+    var sortedOptions = sortOptions(uniqueOptions, true, true);
+    
+    return {
+      status: 'success',
+      data: sortedOptions
+    };
+  } catch (e) {
+    return {
+      status: 'error',
+      message: e.toString()
+    };
+  }
+}
+
+/**********PESSOA**************************
+ * Retorna uma lista de opções para o campo 'Pessoas', filtrando
+ * com base no tipo de pessoa.
+ * @param {string} tipoPessoa O valor do tipo de pessoa ('fisica' ou 'juridica').
+ * @return {object} Um objeto JSON contendo a lista de opções.
+ */
+function getPeopleOptions(tipoPessoa) {
+  //tipoPessoa = 'Pessoa física'
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Configurações');
+    var lastRow = sheet.getLastRow();
+    
+    // As colunas de busca e retorno estão invertidas na sua planilha,
+    // então precisamos ajustar aqui.
+    var personColumn = 9; // Coluna I
+    var personTypeColumn = 10; // Coluna J
+    
+    var data = sheet.getRange(3, personColumn, lastRow - 2, 2).getValues();
+    
+    var filteredData = data.filter(row => row[1] === tipoPessoa);
+    
+    var uniquePeople = Array.from(new Set(filteredData.map(row => row[0])));
+    
+    var options = uniquePeople.map(person => ({ label: person }));
+    Logger.log(options)
+    
+    return { status: 'success', data: options };
+  } catch (e) {
+    return { status: 'error', message: e.message };
+  }
+}
+
+/**********CONTA***************************
+ * Retorna uma lista de opções para o campo 'Conta', filtrando com base
+ * no tipo de pessoa e na pessoa selecionada.
+ * @param {string} tipoPessoa O rótulo do tipo de pessoa selecionado.
+ * @param {string} pessoa O rótulo da pessoa selecionada.
+ * @return {object} Um objeto JSON contendo a lista de opções.
+ */
+function getAccountOptions(tipoPessoa, pessoa) {
+  try {
+    if (tipoPessoa == 'Pessoa física') {
+      tipoPessoa = 'PF';
+    } else if (tipoPessoa == 'Pessoa jurídica') {
+      tipoPessoa = 'PJ';
+    }
+
+    var targetString = pessoa + " - " + tipoPessoa;
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Configurações');
+    var lastRow = sheet.getLastRow();
+    var dataRange = sheet.getRange(3, 13, lastRow - 2, 2); // Colunas M e N
+    var data = dataRange.getValues();
+
+    var filteredData = data.filter(row => row[0] === targetString);
+
+    var uniqueAccounts = Array.from(new Set(filteredData.map(row => row[1])));
+    
+    var options = uniqueAccounts.map(account => ({ label: account }));
+    
+    return { status: 'success', data: options };
+  } catch (e) {
+    return { status: 'error', message: e.message };
+  }
+}

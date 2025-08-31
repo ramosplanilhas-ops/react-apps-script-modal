@@ -1,0 +1,86 @@
+function submitForm(objFormData) {
+  const sheetConfiguracoes = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Configurações');
+  const sheetLancamentos = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Lançamentos');
+  //const sheetLancamentos = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('AbaTeste(Não alimentar)');//Aba de testes
+  //Obter o número de parcelas existentes para adicionar linhas. Caso não tenha parcelas, adicionar só uma linha
+  let howMany = objFormData.parcelas.length ? objFormData.parcelas.length : 1;
+  const initialRow = 3;  
+  const finalData = processObject(objFormData);
+  const sortDirection = sheetConfiguracoes.getRange('U4').getValue() == 'Crescente' ? true : false;//Parâmetro de ordenação  
+  
+  //Verificar se a primeira linha da tabela já está preenchida
+  if (!sheetLancamentos.getRange('A3').getValue()) {//Se a linha 3 estiver vazia
+    if (howMany > 1) {//Se o lançamento for múltiplo
+      //Adicionar as linhas onde serão lançados os dados
+      sheetLancamentos.insertRowsBefore(initialRow, howMany-1);
+    }
+  } else {//Se a linha 3 não estiver vazia
+    //Adicionar as linhas onde serão lançados os dados
+    sheetLancamentos.insertRowsBefore(initialRow, howMany);
+  }
+  
+          
+  //Inserir dados
+  sheetLancamentos.getRange(initialRow,1,howMany,12).setValues(finalData);
+
+  //Ordenar planilha
+  const lastRow = sheetLancamentos.getLastRow();
+  sheetLancamentos.getRange(initialRow,1,lastRow-2,12).sort({column: 1, ascending: sortDirection});
+}
+
+function processObject(frontEndData) {
+  //Matriz final para os dados
+  const finalMatrix = [];
+  
+  //Extrai os dados da matriz de 'parcelas'
+  const parcelasArray = frontEndData.parcelas;
+  
+  //Verifique se o array de parcelas existe e não está vazio
+  if (!parcelasArray || parcelasArray.length === 0) {//LANÇAMENTO ÚNICO
+    //Cria uma linha (matriz unidimensional) para este lançamento
+    const row = [];
+
+    //Adiciona os dados do lançamento
+    row.push(frontEndData.dataLancamento);
+    row.push(frontEndData.tipoPessoa.label);
+    row.push(frontEndData.tipoLancamento.label);
+    row.push(frontEndData.categoria.label);
+    row.push(frontEndData.planoDeContas.label);
+    row.push(frontEndData.valor);
+    row.push(frontEndData.formaPagamento.label);
+    row.push(frontEndData.pessoa.label);
+    row.push(frontEndData.conta.label);
+    row.push('Única');
+    row.push(frontEndData.baixa ? 'Realizado' : 'Previsto');
+    row.push(frontEndData.observacoes);
+
+    //Adiciona a linha à matriz final
+    finalMatrix.push(row);
+  } else {//LANÇAMENTO PARCELADO
+    //Itera sobre a matriz de parcelas para criar cada linha
+    parcelasArray.forEach(parcela => {
+      //Cria uma linha (matriz unidimensional) para esta parcela
+      const row = [];
+      
+      //Adiciona os dados comuns de cada parcela
+      row.push(parcela.data);//Dado de parcela
+      row.push(frontEndData.tipoPessoa.label);
+      row.push(frontEndData.tipoLancamento.label);
+      row.push(frontEndData.categoria.label);
+      row.push(frontEndData.planoDeContas.label);
+      row.push(parcela.valor);//Dado de parcela
+      row.push(frontEndData.formaPagamento.label);
+      row.push(frontEndData.pessoa.label);
+      row.push(frontEndData.conta.label);
+      row.push(parcela.parcelaTexto);//Dado de parcela
+      row.push(parcela.baixa ? 'Realizado' : 'Previsto');//Dado de parcela
+      row.push(frontEndData.observacoes);
+      
+      //Adiciona a linha à matriz final
+      finalMatrix.push(row);
+    });
+  }  
+  
+  //Retorna a matriz bidimensional pronta para o Google Sheets
+  return finalMatrix;
+}
